@@ -21,6 +21,8 @@ class Country(Enum):        #Country
     BRITAIN = "GB"
     JAPAN = "JP"
     MEXICO = "MX"
+    AMERICA = "US"
+    RUSSIA = "RU"
     
 class Months(Enum):     # Months
     JANUARY = 1
