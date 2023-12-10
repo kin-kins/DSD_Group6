@@ -18,7 +18,7 @@ class Category_Analysis:
         final_data=data[data['trending_date'].dt.year==year]
         category_counts = final_data.groupby('categoryId').size().reset_index(name='counts')
         return category_counts
-    def fetch_category_name_from_json(self,json_file_path):
+    def fetch_category_name_from_json(self,json_file_path,year):
 
         # Read the JSON file
         with open(json_file_path,'r') as json_file:
@@ -30,7 +30,7 @@ class Category_Analysis:
 
         list_of_dicts = sorted_counts.to_dict(orient='records')
         for dictionary in list_of_dicts:
-            dictionary['year'] = 2022
+            dictionary['year'] = year
         for item in list_of_dicts:
             category_id = str(item['categoryId'])  # Convert to string to match keys in json_dict
             if category_id in json_dict:
@@ -59,4 +59,4 @@ if __name__ == '__main__':
     #year=2023
     category_obj=Category_Analysis()
     category_counts=category_obj.extract_category_count(csv_path,year)
-    category_name=category_obj.fetch_category_name_from_json(json_path)
+    category_name=category_obj.fetch_category_name_from_json(json_path,year)
