@@ -35,7 +35,7 @@ def analysis_iterator(year,version,id):
     if version == "2":
         os.system(f"python3 analysis2_script.py {year} {id}")
     if version == "3":
-        os.system(f"python3 Analysis_1/Analysis_1_script.py {year} {id}")
+        os.system(f"python3 analysis3_script.py {year} {id}")
 
 
 def main():

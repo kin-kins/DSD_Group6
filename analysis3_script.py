@@ -2,7 +2,6 @@ import pandas as pd
 import json
 import sys
 import os
-from elasticsearch import Elasticsearch
 from opensearchpy import OpenSearch
 
 pd.options.mode.chained_assignment = None
@@ -60,8 +59,7 @@ def get_common_trending_videos_for_year(df, input_year):
 
         # Add a new column with concatenated values of 'year', 'month', and 'video_id'
         common_trending_videos['id'] = common_trending_videos['year'].astype(str) + '_' + \
-                                                        common_trending_videos['month'].astype(str) + '_' + \
-                                                        common_trending_videos['video_id'].astype(str)
+                                                        common_trending_videos['month'].astype(str)
 
         # Select relevant columns
         selected_columns = ['video_id', 'trending_date', 'title', 'channelTitle', 'view_count', 'country_name', 'year',
@@ -81,14 +79,13 @@ def get_common_trending_videos_for_year(df, input_year):
 
 def main():
     try:
-        # Read the CSV file containing all the data
-        # file_path = 'C:\\Users\\jbdou\\Downloads\\preprocessed_single_file_dataset.csv'
-        # df = pd.read_csv(file_path)
         dir = os.path.dirname(__file__)
-        df = pd.read_csv(os.path.join(dir, 'preprocessed_single_file_dataset.csv'))
+        df = pd.read_csv('preprocessed_single_file_dataset.csv')
 
         # Take the input year from the command line argument
         input_year = int(sys.argv[1])
+        analysis_id = sys.argv[2]
+        id_status = es.get(index="analysis_record", id=analysis_id)["_source"]
 
         # Get the common trending videos for the specified year
         result_for_year = get_common_trending_videos_for_year(df, input_year)
@@ -107,7 +104,12 @@ def main():
             try:
                 response = es.index(index=index_name, id=entry["id"], body=entry)
                 print(f"Document inserted successfully. Document ID: {response['_id']}")
+                id_status["status"] = "success"
+                es.index(index="analysis_record", id=analysis_id, body=id_status)
+
             except Exception as e:
+                id_status["status"] = "error"
+                es.index(index="analysis_record", id=analysis_id, body=id_status)
                 print(f"Error inserting document: {e}")
 
 
