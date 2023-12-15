@@ -2,7 +2,6 @@ import pandas as pd
 import json
 import sys
 import os
-from elasticsearch import Elasticsearch
 from opensearchpy import OpenSearch
 
 username = 'admin'
@@ -18,7 +17,7 @@ class Category_Analysis:
         final_data=data[data['trending_date'].dt.year==year]
         category_counts = final_data.groupby('categoryId').size().reset_index(name='counts')
         return category_counts
-    def fetch_category_name_from_json(self,json_file_path,year):
+    def fetch_category_name_from_json(self, json_file_path, year, id_status):
 
         # Read the JSON file
         with open(json_file_path,'r') as json_file:
@@ -46,17 +45,26 @@ class Category_Analysis:
             try:
                 response = es.index(index=index_name, id=single_dict["ID"], body=single_dict)
                 print(f"Document inserted successfully. Document ID: {response['_id']}")
+                id_status["status"] = "success"
+                es.index(index="analysis_record", id=analysis_id, body=id_status)
+
             except Exception as e:
                 print(f"Error inserting document: {e}")
+                id_status["status"] = "error"
+                es.index(index="analysis_record", id=analysis_id, body=id_status)
+
+
 
 if __name__ == '__main__':
     #csv_path = 'C:/Users/aayan/Desktop/Fall 2023/DSD/Project/DSD Youtube Dataset/preprocessed_single_file_dataset.csv'
     #json_path='C:/Users/aayan/Desktop/Fall 2023/DSD/Project/DSD Youtube Dataset/BR_category_id.json'
     dir = os.path.dirname(__file__)
-    csv_path = os.path.join(dir, 'preprocessed_single_file_dataset.csv')
-    json_path=os.path.join(dir, 'BR_category_id.json')
-    year=int(sys.argv[1])
+    csv_path = 'preprocessed_single_file_dataset.csv'
+    json_path='BR_category_id.json'
+    year = int(sys.argv[1])
+    analysis_id = sys.argv[2]
+    id_status = es.get(index="analysis_record", id=analysis_id)["_source"]
     #year=2023
     category_obj=Category_Analysis()
     category_counts=category_obj.extract_category_count(csv_path,year)
-    category_name=category_obj.fetch_category_name_from_json(json_path,year)
+    category_obj.fetch_category_name_from_json(json_path, year,id_status)
