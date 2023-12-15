@@ -11,7 +11,6 @@ from enum import Enum
 import sys
 import json
 import os
-from elasticsearch import Elasticsearch
 from opensearchpy import OpenSearch
 
 pd.options.mode.chained_assignment = None
@@ -106,9 +105,11 @@ class Analysis1:
         return countryDict
 if __name__ == '__main__':   
     dir = os.path.dirname(__file__)
-    filename = os.path.join(dir, 'preprocessed_single_file_dataset.csv')
+    filename = 'preprocessed_single_file_dataset.csv'
     solution = Analysis1(dataset_path=filename)
     yearToCalculate = int(sys.argv[1])
+    analysis_id = sys.argv[2]
+    id_status = es.get(index="analysis_record", id=analysis_id)["_source"]
     resultDict = solution.processingCountry(yearToCalculate)
     print("\n")
     print("==========================" + str(yearToCalculate) + "==========================")
@@ -147,5 +148,11 @@ if __name__ == '__main__':
                 try:
                    response = es.index(index=index_name,id=jsonAnalysis1["id"], body=jsonAnalysis1)
                    print(f"Document inserted successfully. Document ID: {response['_id']}")
+
+                   id_status["status"]="success"
+                   es.index(index="analysis_record",id=analysis_id, body=id_status)
+
                 except Exception as e:
+                   id_status["status"] = "error"
+                   es.index(index="analysis_record", id=analysis_id, body=id_status)
                    print(f"Error inserting document: {e}")
