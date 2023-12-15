@@ -22,6 +22,7 @@ def get_common_trending_videos_for_year(df, input_year):
     # Convert 'trending_date' column to datetime
     df['trending_date'] = pd.to_datetime(df['trending_date'], format='%Y-%m-%dT%H:%M:%SZ')
 
+
     # Create 'year' and 'month' columns
     df['year'] = df['trending_date'].dt.year
     df['month'] = df['trending_date'].dt.month
@@ -72,12 +73,12 @@ def get_common_trending_videos_for_year(df, input_year):
 
 
 def main():
-    try:
+
         # Read the CSV file containing all the data
         # file_path = 'C:\\Users\\jbdou\\Downloads\\preprocessed_single_file_dataset.csv'
         # df = pd.read_csv(file_path)
         dir = os.path.dirname(__file__)
-        df = os.path.join(dir, 'preprocessed_single_file_dataset.csv')
+        df = pd.read_csv(os.path.join(dir, 'preprocessed_single_file_dataset.csv'))
 
         # Take the input year from the command line argument
         input_year = int(sys.argv[1])
@@ -87,13 +88,14 @@ def main():
 
         # Convert the result to JSON format
         result_json = result_for_year.to_json(orient='records', date_format='iso', default_handler=str)
-
+        result_json["id"] =
         # Convert the JSON string to a list
         result_list = json.loads(result_json)
 
         # Print the list
         print(f"\nCommon Trending Videos for {input_year} (Sorted by Trending Date) in List format:")
-        #print(result_list)
+        print(result_list)
+
         for entry in result_list:
             entry["year"] = input_year  # Add the input year to each entry
             try:
