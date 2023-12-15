@@ -22,7 +22,6 @@ def get_common_trending_videos_for_year(df, input_year):
     # Convert 'trending_date' column to datetime
     df['trending_date'] = pd.to_datetime(df['trending_date'], format='%Y-%m-%dT%H:%M:%SZ')
 
-
     # Create 'year' and 'month' columns
     df['year'] = df['trending_date'].dt.year
     df['month'] = df['trending_date'].dt.month
@@ -48,6 +47,8 @@ def get_common_trending_videos_for_year(df, input_year):
             'view_count': 'sum',
             'likes': 'sum',
             'dislikes': 'sum',
+            'year': 'first',
+            'month': 'first',
             'country_name': lambda x: ', '.join(x.unique())
         }).reset_index()
 
@@ -57,8 +58,14 @@ def get_common_trending_videos_for_year(df, input_year):
                 monthly_data['country_name'].unique())
             ]
 
+        # Add a new column with concatenated values of 'year', 'month', and 'video_id'
+        common_trending_videos['id'] = common_trending_videos['year'].astype(str) + '_' + \
+                                                        common_trending_videos['month'].astype(str) + '_' + \
+                                                        common_trending_videos['video_id'].astype(str)
+
         # Select relevant columns
-        selected_columns = ['video_id', 'trending_date', 'title', 'channelTitle', 'view_count', 'country_name']
+        selected_columns = ['video_id', 'trending_date', 'title', 'channelTitle', 'view_count', 'country_name', 'year',
+                            'month', 'id']
 
         # Display the common trending videos with selected columns
         common_trending_videos_selected = common_trending_videos[selected_columns]
@@ -73,7 +80,7 @@ def get_common_trending_videos_for_year(df, input_year):
 
 
 def main():
-
+    try:
         # Read the CSV file containing all the data
         # file_path = 'C:\\Users\\jbdou\\Downloads\\preprocessed_single_file_dataset.csv'
         # df = pd.read_csv(file_path)
@@ -88,14 +95,13 @@ def main():
 
         # Convert the result to JSON format
         result_json = result_for_year.to_json(orient='records', date_format='iso', default_handler=str)
-        result_json["id"] =
+
         # Convert the JSON string to a list
         result_list = json.loads(result_json)
 
         # Print the list
         print(f"\nCommon Trending Videos for {input_year} (Sorted by Trending Date) in List format:")
         print(result_list)
-
         for entry in result_list:
             entry["year"] = input_year  # Add the input year to each entry
             try:
