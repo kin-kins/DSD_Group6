@@ -26,14 +26,14 @@ es = OpenSearch(hosts=hosts, http_auth=http_auth)
 
 def requirementsDocument(year,Version):
     reqDocument = {
-    "processid": datetime.now(),
+    "processid": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
     "status": "new",
-    "timestamp": datetime.now(),
+    "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
     "analysisVersion": Version,
     "analysisYear": year
     }
     try:
-      response = es.index(index=index_name,id=reqDocument["processid"], body=reqDocument)
+      response = es.index(index=index_name,body=reqDocument)
       print(f"Document inserted successfully. Document ID: {response['_id']}")
     except Exception as e:
        print(f"Error inserting document: {e}")
@@ -46,4 +46,4 @@ if __name__ == '__main__':
     year = int(input("Please enter year between 2020 and 2023 "))
     while(year < 2020 or year > 2023):
         year = int(input("Please enter year between 2020 and 2023"))
-    requirementsDocument(year,version)
+    requirementsDocument(year,str(version))
