@@ -41,15 +41,24 @@ def analysis_iterator(year,version,id):
 def main():
     while True:
         all_documents = get_documents_by_status()
-        for docs in all_documents:
-            version = docs["_source"]["analysisVersion"]
-            year = docs["_source"]["analysisYear"]
-            if docs["_source"]["status"] == "new":
-                print(f"Processing analysis {version} for the year {year}")
-                docs["_source"]["status"] = "processing"
-                docs["_source"]["processing_timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-                response = es.index(index=index_name, id=docs["_id"], body=docs["_source"])
-                analysis_iterator(year,version, docs["_id"])
+        if all_documents != None:
+            for docs in all_documents:
+                version = docs["_source"]["analysisVersion"]
+                year = docs["_source"]["analysisYear"]
+                if docs["_source"]["status"]=="processing":
+                    processing_timestamp = datetime.datetime.strptime(docs["_source"]["processing_timestamp"] , "%Y-%m-%dT%H:%M:%SZ")
+                    current_time = datetime.datetime.now()
+                    time_difference = current_time - processing_timestamp
+                    difference_in_seconds = time_difference.total_seconds()
+                    if difference_in_seconds>300:
+                        response = es.index(index=index_name, id=docs["_id"], body=docs["_source"])
+                        analysis_iterator(year, version, docs["_id"])
+                if docs["_source"]["status"] == "new":
+                    print(f"Processing analysis {version} for the year {year}")
+                    docs["_source"]["status"] = "processing"
+                    docs["_source"]["processing_timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                    response = es.index(index=index_name, id=docs["_id"], body=docs["_source"])
+                    analysis_iterator(year,version, docs["_id"])
         print("Sleeping 10 Seconds")
         time.sleep(10)
 
