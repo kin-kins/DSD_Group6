@@ -46,11 +46,13 @@ def main():
                 version = docs["_source"]["analysisVersion"]
                 year = docs["_source"]["analysisYear"]
                 if docs["_source"]["status"]=="processing":
+                    print(f"Analyzing Reprocess Status {version} for the year {year}")
                     processing_timestamp = datetime.datetime.strptime(docs["_source"]["processing_timestamp"] , "%Y-%m-%dT%H:%M:%SZ")
                     current_time = datetime.datetime.now()
                     time_difference = current_time - processing_timestamp
                     difference_in_seconds = time_difference.total_seconds()
                     if difference_in_seconds>300:
+                        print(f"Reprocessing analysis {version} for the year {year}")
                         response = es.index(index=index_name, id=docs["_id"], body=docs["_source"])
                         analysis_iterator(year, version, docs["_id"])
                 if docs["_source"]["status"] == "new":
@@ -59,8 +61,14 @@ def main():
                     docs["_source"]["processing_timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
                     response = es.index(index=index_name, id=docs["_id"], body=docs["_source"])
                     analysis_iterator(year,version, docs["_id"])
-        print("Sleeping 10 Seconds")
+                all_documents = get_documents_by_status()
+                print("Sleeping 5 Seconds to refresh Docs status")
+                time.sleep(5)
+                if all_documents is None:
+                    break
+        print("Sleeping 10 Seconds for New Input")
         time.sleep(10)
+
 
 
 
